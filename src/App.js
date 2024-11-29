@@ -1,58 +1,65 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link} from 'react-router-dom';
+import React from 'react';
+import { BrowserRouter as Router, Route, Routes, Link } from 'react-router-dom';
 import Login from './components/Login';
 import EmployeeList from './components/EmployeeList';
 import EmployeeDetails from './components/EmployeeDetails';
 import FormPage from './components/FormPage';
-
-const Protected = () => {
-  return (
-    <div>
-      <h2>Protected Page</h2>
-      <p>This page is only accessible after logging in.</p>
-    </div>
-  );
-};
+import RequireSignedIn from './components/RequireSignedIn';
+import SignupForm from './components/SignUp';
+import { useAuth } from './AuthContext';
 
 const App = () => {
-  const [token, setToken] = useState(localStorage.getItem('token'));
-
-  const handleLogin = (newToken) => {
-    setToken(newToken);
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    setToken(null);
-  };
+  const { token, logout } = useAuth();
 
   return (
     <Router>
-      <nav>
-        <ul>
-          <li><Link to="/">Home</Link></li>
-          {token ? (
-            <>
-              <li><Link to="/employees">Employee List</Link></li>
-              <li><Link to="/employees/add">Add Employee</Link></li>
-              <li><Link to="/" onClick={handleLogout}>Logout</Link></li>
-            </>
-          ) : (
-            <li><Link to="/login">Login</Link></li>
-          )}
-        </ul>
-      </nav>
+      <div className="container-fluid p-0">
+        <nav className="navbar navbar-expand-lg navbar-dark bg-dark">
+          <div className="container-fluid">
+            <Link className="navbar-brand" to="/">Home</Link>
+            <button className="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+              <span className="navbar-toggler-icon"></span>
+            </button>
+            <div className="collapse navbar-collapse" id="navbarNav">
+              <ul className="navbar-nav">
+                {token ? (
+                  <>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/employees">Employee List</Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/employees/add">Add Employee</Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/" onClick={logout}>Logout</Link>
+                    </li>
+                  </>
+                ) : (
+                  <>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/login">Login</Link>
+                    </li>
+                    <li className="nav-item">
+                      <Link className="nav-link" to="/signup">Sign Up</Link>
+                    </li>
+                  </>
+                )}
+              </ul>
+            </div>
+          </div>
+        </nav>
 
-      <Routes>
-        <Route path="/" element={<h1>Home Page</h1>} />
-        <Route path="/login" element={<Login onLogin={handleLogin} />} />
-        <Route path="/protected" element={token ? <Protected /> : <h2>Please log in first.</h2>} />
-        <Route path="/employees" element={<EmployeeList />} />
-        <Route path="/employees/search" element={<EmployeeList />} />
-        <Route path="/employees/add" element={<FormPage />} />
-        <Route path="/employees/edit/:eid" element={<FormPage />} />
-        <Route path="/employees/:eid" element={<EmployeeDetails />} />
-      </Routes>
+        <Routes>
+          <Route path="/" element={<Login />} />
+          <Route path="/login" element={<Login />} />
+          <Route path='/signup' element={<SignupForm />} />
+          <Route path="/employees" element={<RequireSignedIn><EmployeeList /></RequireSignedIn>} />
+          <Route path="/employees/search" element={<RequireSignedIn><EmployeeList /></RequireSignedIn>} />
+          <Route path="/employees/add" element={<RequireSignedIn><FormPage /></RequireSignedIn>} />
+          <Route path="/employees/edit/:eid" element={<RequireSignedIn><FormPage /></RequireSignedIn>} />
+          <Route path="/employees/:eid" element={<RequireSignedIn><EmployeeDetails /></RequireSignedIn>} />
+        </Routes>
+      </div>
     </Router>
   );
 };
